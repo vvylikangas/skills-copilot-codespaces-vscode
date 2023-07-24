@@ -1,50 +1,31 @@
-//create web server
-const express = require('express');
-const app = express();
-//get the path of the file system
-const path = require('path');
-// get the body of the request
-const bodyParser = require('body-parser');
-// set up the body parser
-app.use(bodyParser.urlencoded({ extended: true }));
-// set up the public directory
-app.use(express.static(path.join(__dirname, 'public')));
-// set up the view engine
-app.set('view engine', 'ejs');
-// set up the data base
-const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/comments', { useNewUrlParser: true, useUnifiedTopology: true });
-// set up the schema
-const commentSchema = new mongoose.Schema({
-    name: String,
-    comment: String
-});
-// set up the model
-const Comment = mongoose.model('Comment', commentSchema);
-// set up the route
-app.get('/', (req, res) => {
-    res.render('home');
-});
-app.get('/comments', (req, res) => {
-    Comment.find({}, (err, comments) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.render('comments', { comments });
-        }
-    })
-});
-app.post('/comments', (req, res) => {
-    Comment.create(req.body.comment, (err, comment) => {
-        if (err) {
-            console.log(err);
-        } else {
-            res.redirect('/comments');
-        }
-    })
-});
-// set up the port
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
-});
+// Create web server
+var express = require('express');
+var router = express.Router();
+var passport = require('passport');
+var commentController = require('../controllers/commentController');
 
+// GET request for creating a new comment. NOTE This must come before routes that display comment (uses id).
+router.get('/comment/create', commentController.comment_create_get);
+
+// POST request for creating comment.
+router.post('/comment/create', commentController.comment_create_post);
+
+// GET request to delete comment.
+router.get('/comment/:id/delete', commentController.comment_delete_get);
+
+// POST request to delete comment.
+router.post('/comment/:id/delete', commentController.comment_delete_post);
+
+// GET request to update comment.
+router.get('/comment/:id/update', commentController.comment_update_get);
+
+// POST request to update comment.
+router.post('/comment/:id/update', commentController.comment_update_post);
+
+// GET request for one comment.
+router.get('/comment/:id', commentController.comment_detail);
+
+// GET request for list of all comment items.
+router.get('/comments', commentController.comment_list);
+
+module.exports = router;
